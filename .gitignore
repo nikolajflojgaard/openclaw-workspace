@@ -1,0 +1,30 @@
+# This repo is a backup of Jason, not a dump of the whole workspace.
+# Default: ignore everything unless explicitly whitelisted below.
+/*
+
+!/.gitignore
+!/.backup-manifest
+!/BACKUP_SCOPE.md
+!/AGENTS.md
+!/DEBUG-LOOP.md
+!/HEARTBEAT.md
+!/IDENTITY.md
+!/MEMORY.md
+!/MEMORY-DISTILLATION.md
+!/MEMORY-SYSTEM.md
+!/RESEARCH-TO-POST.md
+!/SOUL.md
+!/TOOLS.md
+!/USER.md
+!/memory/
+!/memory/**
+/memory/.dreams/
+/memory/.dreams/**
+/memory/index.json
+/memory/*-state.json
+!/prompts/
+!/prompts/**
+!/scripts/
+!/scripts/**
+!/skills/
+!/skills/**
