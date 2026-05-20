@@ -50,3 +50,23 @@ Add whatever helps you do your job. This is your cheat sheet.
 - Home Assistant MCP token is stored in macOS Keychain under service: `homeassistant-mcp-token`
 - Use `scripts/mcporter-ha.sh` to load the token into `HOMEASSISTANT_MCP_TOKEN` and run `mcporter` without keeping the token in workspace files
 
+### Home Assistant / backup notes
+
+- Home Assistant MCP endpoint: `http://192.168.0.241:8123/api/mcp`
+- Home Assistant config backup repo: `nikolajflojgaard/homeassistant-backup` (private)
+- Home Assistant `/config` sync script lives at: `/config/.github-backup/sync.sh`
+- Home Assistant `/config` git remote uses deploy-key auth to GitHub
+- Scheduled Home Assistant config sync job: biweekly Wednesday 12:00 Europe/Copenhagen
+
+### SSH
+
+- GitHub SSH identity on this Mac: `~/.ssh/id_ed25519_github`
+- `github.com` in `~/.ssh/config` uses that identity explicitly
+- `homeassistant` in `~/.ssh/config` should point to `192.168.0.241` as user `hassio` and use `~/.ssh/id_ed25519_github`
+
+### Repo backup notes
+
+- Jason backup repo: `nikolajflojgaard/openclaw-workspace`
+- Scope is curated by `.backup-manifest` and `.gitignore`, not whole-workspace dump
+- Scheduled Jason backup sync job: Monday 02:00 Europe/Copenhagen
+
