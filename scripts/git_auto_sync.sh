@@ -51,7 +51,11 @@ if [[ ! -f "$MANIFEST" ]]; then
   exit 1
 fi
 
-mapfile -t PATHS < "$MANIFEST"
+PATHS=()
+while IFS= read -r line || [[ -n "$line" ]]; do
+  [[ -z "$line" ]] && continue
+  PATHS+=("$line")
+done < "$MANIFEST"
 
 # Stage/commit only the curated Jason backup surface
 if ! git diff --quiet || ! git diff --cached --quiet || [[ -n "$(git ls-files --others --exclude-standard -- "${PATHS[@]}")" ]]; then

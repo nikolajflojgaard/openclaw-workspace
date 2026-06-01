@@ -150,12 +150,14 @@ Still keep it to max 3 items.
 - Prefer `sensor.household_chores_nikolaj_next_3_tasks_2`.
 - If needed, derive from `sensor.household_chores_next_3_tasks` by filtering assignee `Nikolaj`.
 - If there are none, say `No Nikolaj-assigned tasks in the next 3 chores.`
+- If a task date is before today, mark it plainly as overdue. Do not write it as if it belongs to today.
 - Format:
   - `<title> — <date>`
 
 **Household Chores**
 - Must always mention `sensor.household_chores_next_3_tasks`.
 - Include next tasks count.
+- If chore dates are in the past, call them overdue rather than presenting them as fresh upcoming tasks.
 - Format chores like:
   - `Workout — 2026-03-23 — Nikolaj`
   - `Valg FEST! — 2026-03-24 — Nikolaj, Janice`

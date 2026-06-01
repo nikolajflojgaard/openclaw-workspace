@@ -12,10 +12,23 @@ Before doing anything else:
 
 1. Read `SOUL.md` — this is who you are
 2. Read `USER.md` — this is who you're helping
-3. Read `memory/YYYY-MM-DD.md` (today + yesterday) for recent context
-4. **If in MAIN SESSION** (direct chat with your human): Also read `MEMORY.md`
+3. Read `memory/YYYY-MM-DD.md` for **today only** by default
+4. Read yesterday's daily note **only if** today's note or the task suggests recent continuity matters
+5. **If in MAIN SESSION** (direct chat with your human): read `MEMORY.md` only when the task involves preferences, prior decisions, ongoing projects, people, or other durable context
 
 Don't ask permission. Just do it.
+
+## Keep Sessions Light
+
+Default to the lightest context that still lets you do good work.
+
+- Read less by default; expand only when the task actually needs it
+- Prefer search/targeted excerpts over full-file reads
+- Do not reload large files just because they exist
+- Do not pull `MEMORY.md` into every main-session task out of habit
+- Prefer isolated cron jobs and sub-agents for repeated or background work
+- Keep heartbeat instructions small; empty is better than stale
+- Summarize durable lessons into files so future sessions need less chat replay
 
 ## Memory
 
@@ -38,7 +51,7 @@ Capture what matters. Decisions, context, things to remember. Skip the secrets u
 - This is for **security** — contains personal context that shouldn't leak to strangers
 - You can **read, edit, and update** MEMORY.md freely in main sessions
 - Write significant events, thoughts, decisions, opinions, lessons learned
-- This is your curated memory — the distilled essence, not raw logs
+- Keep it **curated and compact** — durable signal only, not operational clutter
 - Over time, review your daily files and update MEMORY.md with what's worth keeping
 
 ### 📝 Write It Down - No "Mental Notes"!
@@ -199,6 +212,8 @@ You are free to edit `HEARTBEAT.md` with a short checklist or reminders. Keep it
 - Update documentation
 - Commit and push your own changes
 - **Review and update MEMORY.md** (see below)
+
+But do this with restraint: prefer one useful check over broad wandering.
 
 ### 🔄 Memory Maintenance (During Heartbeats)
 

@@ -15,7 +15,7 @@ from urllib.request import Request, urlopen
 ROOT = Path(__file__).resolve().parents[1]
 STATE_PATH = ROOT / "state" / "rolex-denmark-dealers.json"
 HISTORY_PATH = ROOT / "state" / "rolex-denmark-dealers-history.jsonl"
-SITEMAP_URL = "https://r.jina.ai/http://www.rolex.com/api/sm/retailer-sitemap.xml"
+SITEMAP_URL = "https://www.rolex.com/api/sm/retailer-sitemap.xml"
 TITLE_FETCH_PREFIX = "https://r.jina.ai/http://"
 USER_AGENT = "Mozilla/5.0 (compatible; RolexDenmarkMonitor/1.0)"
 
@@ -40,6 +40,8 @@ CITY_LABELS = {
 DEALER_URL_RE = re.compile(
     r"https://www\.rolex\.com/rolex-dealers/(?P<slug>[^/]+)/(?P<id>rswi_\d+)-(?P<city>[a-z]+)-denmark"
 )
+STORE_LOCATOR_DENMARK_RE = re.compile(r"https://www\.rolex\.com/store-locator/denmark(?:/[a-z]+)+")
+LOC_RE = re.compile(r"<loc>(https://www\.rolex\.com/[^<]+)</loc>")
 TITLE_RE = re.compile(r"^Title:\s*(.+)$", re.MULTILINE)
 
 
@@ -51,7 +53,16 @@ class Dealer:
 
 
 def fetch_text(url: str, timeout: int = 60) -> str:
-    req = Request(url, headers={"User-Agent": USER_AGENT})
+    headers = {
+        "User-Agent": USER_AGENT,
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        "Accept-Language": "en-US,en;q=0.9",
+        "Cache-Control": "no-cache",
+        "Pragma": "no-cache",
+    }
+    if "rolex.com" in url:
+        headers["Referer"] = "https://www.rolex.com/"
+    req = Request(url, headers=headers)
     with urlopen(req, timeout=timeout) as response:
         charset = response.headers.get_content_charset() or "utf-8"
         return response.read().decode(charset, errors="replace")
@@ -88,25 +99,54 @@ def fetch_title_name(url: str) -> str | None:
 
 
 def extract_dealer_urls(sitemap_text: str) -> list[str]:
-    matches = DEALER_URL_RE.findall(sitemap_text)
-    urls = {
+    legacy_matches = DEALER_URL_RE.findall(sitemap_text)
+    legacy_urls = {
         f"https://www.rolex.com/rolex-dealers/{slug}/{dealer_id}-{city}-denmark"
-        for slug, dealer_id, city in matches
+        for slug, dealer_id, city in legacy_matches
         if not slug.startswith("rswi_")
     }
-    return sorted(urls)
+    if legacy_urls:
+        return sorted(legacy_urls)
+
+    denmark_urls = {
+        url.rstrip("/")
+        for url in LOC_RE.findall(sitemap_text)
+        if STORE_LOCATOR_DENMARK_RE.fullmatch(url.rstrip("/")) and "/watch-care-and-service/" not in url
+    }
+    leaf_urls = [
+        url
+        for url in denmark_urls
+        if not any(other != url and other.startswith(url + "/") for other in denmark_urls)
+    ]
+    return sorted(leaf_urls)
+
+
+def city_from_url(url: str) -> str | None:
+    legacy_match = DEALER_URL_RE.search(url)
+    if legacy_match:
+        city_slug = legacy_match.group("city")
+        return CITY_LABELS.get(city_slug, city_slug.replace("-", " ").title())
+
+    if "/store-locator/denmark/" not in url:
+        return None
+    city_slug = url.rstrip("/").split("/")[-1]
+    return CITY_LABELS.get(city_slug, city_slug.replace("-", " ").title())
+
+
+def fallback_name_from_url(url: str, city: str) -> str:
+    legacy_match = DEALER_URL_RE.search(url)
+    if legacy_match:
+        return f"{title_case_slug(legacy_match.group('slug'))} {city.upper()}"
+    return city.upper()
 
 
 def normalize_dealers(urls: Iterable[str]) -> list[Dealer]:
     dealers: list[Dealer] = []
     for url in urls:
-        match = DEALER_URL_RE.search(url)
-        if not match:
+        city = city_from_url(url)
+        if not city:
             continue
-        city_slug = match.group("city")
-        slug = match.group("slug")
-        city = CITY_LABELS.get(city_slug, city_slug.replace("-", " ").title())
-        name = KNOWN_NAME_OVERRIDES.get(url) or fetch_title_name(url) or f"{title_case_slug(slug)} {city.upper()}"
+        name = KNOWN_NAME_OVERRIDES.get(url) or fetch_title_name(url) or fallback_name_from_url(url, city)
         dealers.append(Dealer(name=name, city=city, url=url))
     dealers.sort(key=lambda dealer: (dealer.city.lower(), dealer.name.lower(), dealer.url))
     return dealers

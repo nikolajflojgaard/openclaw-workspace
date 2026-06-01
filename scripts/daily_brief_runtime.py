@@ -5,7 +5,7 @@ from pathlib import Path
 import subprocess
 import sys
 import urllib.request
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 from urllib.parse import quote
 
 HA_BASE = "http://192.168.0.241:8123"
@@ -41,6 +41,26 @@ def ha_get(path, token):
 
 def ha_post(path, token, body):
     return ha_request(path, token, method="POST", body=body)
+
+
+def refresh_household_chore_sensors(token):
+    entity_ids = [
+        "sensor.household_chores_next_3_tasks",
+        "sensor.household_chores_today_tasks",
+        "sensor.household_chores_nikolaj_tasks_2",
+        "sensor.household_chores_nikolaj_next_3_tasks_2",
+        "sensor.household_chores_janice_tasks_2",
+        "sensor.household_chores_janice_next_3_tasks_2",
+        "sensor.household_chores_nelly_tasks_2",
+        "sensor.household_chores_nelly_next_3_tasks_2",
+        "sensor.household_chores_jamie_tasks_2",
+        "sensor.household_chores_jamie_next_3_tasks_2",
+    ]
+    try:
+        ha_post("/api/services/homeassistant/update_entity", token, {"entity_id": entity_ids})
+    except Exception:
+        return False
+    return True
 
 
 def safe_state(entity_id, token):
@@ -105,10 +125,29 @@ def _tasks_from_state(state):
             continue
         assignee_names = item.get("assignee_names") if isinstance(item.get("assignee_names"), list) else []
         assignees = item.get("assignees") if isinstance(item.get("assignees"), list) else []
+        raw_date = str(item.get("date") or item.get("due") or "").strip() or None
+        parsed_date = None
+        days_overdue = None
+        status = "undated"
+        if raw_date:
+            try:
+                parsed_date = date.fromisoformat(raw_date)
+                days_overdue = (date.today() - parsed_date).days
+                if days_overdue > 0:
+                    status = "overdue"
+                elif days_overdue == 0:
+                    status = "today"
+                else:
+                    status = "upcoming"
+            except Exception:
+                status = "dated"
         normalized.append(
             {
                 "title": str(item.get("title") or item.get("name") or item.get("task") or "").strip(),
-                "date": str(item.get("date") or item.get("due") or "").strip() or None,
+                "date": raw_date,
+                "display_date": (f"{raw_date} (overdue {days_overdue}d)" if raw_date and days_overdue and days_overdue > 0 else raw_date),
+                "days_overdue": days_overdue if days_overdue and days_overdue > 0 else 0,
+                "status": status,
                 "assignee": ", ".join(assignee_names or assignees) if (assignee_names or assignees) else str(item.get("assignee") or item.get("person") or "").strip() or None,
             }
         )
@@ -136,7 +175,7 @@ def _build_brief_text(top3_lines, nikolaj_tasks, household_tasks, weather, solar
     if nikolaj_tasks:
         sections.append(
             "Nikolaj’s Tasks\n" + "\n".join(
-                f"• {item['title']}" + (f" — {item['date']}" if item.get('date') else "")
+                f"• {item['title']}" + (f" — {item.get('display_date') or item.get('date')}" if item.get('date') else "")
                 for item in nikolaj_tasks[:3]
             )
         )
@@ -144,7 +183,7 @@ def _build_brief_text(top3_lines, nikolaj_tasks, household_tasks, weather, solar
         sections.append(
             "Household Chores\n" + "\n".join(
                 f"• {item['title']}"
-                + (f" — {item['date']}" if item.get('date') else "")
+                + (f" — {item.get('display_date') or item.get('date')}" if item.get('date') else "")
                 + (f" — {item['assignee']}" if item.get('assignee') else "")
                 for item in household_tasks[:3]
             )
@@ -164,6 +203,7 @@ def _build_brief_text(top3_lines, nikolaj_tasks, household_tasks, weather, solar
 
 
 def build_payload(token):
+    refresh_household_chore_sensors(token)
     household = safe_state("sensor.household_chores_next_3_tasks", token)
     nikolaj = safe_state("sensor.household_chores_nikolaj_next_3_tasks_2", token)
     solar_power = safe_state("sensor.solax_ac_power_3", token)

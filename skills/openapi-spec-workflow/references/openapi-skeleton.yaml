@@ -1,0 +1,34 @@
+openapi: 3.0.3
+info:
+  title: Replace Me API
+  version: 1.0.0
+  description: Replace with a short honest description.
+servers:
+  - url: https://api.example.com
+paths:
+  /resource/{id}:
+    get:
+      summary: Get resource by id
+      operationId: getResource
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Resource returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Resource'
+        '404':
+          description: Resource not found
+components:
+  schemas:
+    Resource:
+      type: object
+      properties:
+        id:
+          type: string

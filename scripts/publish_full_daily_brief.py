@@ -1,13 +1,12 @@
 #!/usr/bin/env python3
 import argparse
 import json
-import os
 from pathlib import Path
 import subprocess
 import sys
-import tempfile
 import urllib.request
-from datetime import datetime, timedelta
+import uuid
+from datetime import datetime, timedelta, date
 from urllib.parse import quote
 
 HA_BASE = "http://192.168.0.241:8123"
@@ -55,6 +54,26 @@ def ha_get(path, token):
 
 def ha_post(path, token, body):
     return ha_request(path, token, method="POST", body=body)
+
+
+def refresh_household_chore_sensors(token):
+    entity_ids = [
+        "sensor.household_chores_next_3_tasks",
+        "sensor.household_chores_today_tasks",
+        "sensor.household_chores_nikolaj_tasks_2",
+        "sensor.household_chores_nikolaj_next_3_tasks_2",
+        "sensor.household_chores_janice_tasks_2",
+        "sensor.household_chores_janice_next_3_tasks_2",
+        "sensor.household_chores_nelly_tasks_2",
+        "sensor.household_chores_nelly_next_3_tasks_2",
+        "sensor.household_chores_jamie_tasks_2",
+        "sensor.household_chores_jamie_next_3_tasks_2",
+    ]
+    try:
+        ha_post("/api/services/homeassistant/update_entity", token, {"entity_id": entity_ids})
+    except Exception:
+        return False
+    return True
 
 
 def safe_state(entity_id, token):
@@ -119,10 +138,29 @@ def _tasks_from_state(state):
             continue
         assignee_names = item.get("assignee_names") if isinstance(item.get("assignee_names"), list) else []
         assignees = item.get("assignees") if isinstance(item.get("assignees"), list) else []
+        raw_date = str(item.get("date") or item.get("due") or "").strip() or None
+        parsed_date = None
+        days_overdue = None
+        status = "undated"
+        if raw_date:
+            try:
+                parsed_date = date.fromisoformat(raw_date)
+                days_overdue = (date.today() - parsed_date).days
+                if days_overdue > 0:
+                    status = "overdue"
+                elif days_overdue == 0:
+                    status = "today"
+                else:
+                    status = "upcoming"
+            except Exception:
+                status = "dated"
         normalized.append(
             {
                 "title": str(item.get("title") or item.get("name") or item.get("task") or "").strip(),
-                "date": str(item.get("date") or item.get("due") or "").strip() or None,
+                "date": raw_date,
+                "display_date": (f"{raw_date} (overdue {days_overdue}d)" if raw_date and days_overdue and days_overdue > 0 else raw_date),
+                "days_overdue": days_overdue if days_overdue and days_overdue > 0 else 0,
+                "status": status,
                 "assignee": ", ".join(assignee_names or assignees) if (assignee_names or assignees) else str(item.get("assignee") or item.get("person") or "").strip() or None,
             }
         )
@@ -189,6 +227,7 @@ def build_brief_text(sections):
 
 
 def build_payload(brief_text, token):
+    refresh_household_chore_sensors(token)
     household = safe_state("sensor.household_chores_next_3_tasks", token)
     nikolaj = safe_state("sensor.household_chores_nikolaj_next_3_tasks_2", token)
     solar_power = safe_state("sensor.solax_ac_power_3", token)
@@ -243,8 +282,6 @@ def publish_payload(token, entry_id, payload, source="full_daily_brief"):
 
 
 def generate_brief_via_agent(prompt_path):
-    with tempfile.NamedTemporaryFile(prefix="openclaw-daily-brief-", suffix=".txt", delete=False) as tmp:
-        output_path = tmp.name
     prompt = f'''Read and follow the briefing spec at `{prompt_path}`.
 
 Before writing the brief, run this exact command from the workspace and use its JSON output as the live Home Assistant ground truth plus Top 3 decision layer:
@@ -260,38 +297,45 @@ Requirements:
 - Write naturally, like a sharp human analyst.
 - Do not expose tokens or secret values.
 - If any one data source fails, continue and note the missing section briefly rather than failing the whole brief.
-- Write only the final brief text to this file: `{output_path}`
+- Reply with only the final brief text.
 - Do not wrap the result in code fences.
 '''
+    isolated_session_id = f"daily-brief-{uuid.uuid4()}"
     cmd = [
         "openclaw",
         "agent",
         "--local",
         "--agent",
         "main",
+        "--session-id",
+        isolated_session_id,
         "--message",
         prompt,
         "--timeout",
         "240",
     ]
-    session_id = os.environ.get("OPENCLAW_AGENT_SESSION_ID")
-    if session_id:
-        cmd.extend(["--session-id", session_id])
-    subprocess.check_call(cmd, cwd=WORKSPACE)
-    with open(output_path, "r", encoding="utf-8") as fh:
-        brief_text = fh.read()
-    os.unlink(output_path)
-    return brief_text
+    # Deliberately force a fresh session here.
+    # Reusing the caller session causes the daily-brief generator to inherit
+    # large chat history, which has led to context overflows and slow runs.
+    result = subprocess.run(cmd, cwd=WORKSPACE, text=True, capture_output=True)
+    if result.returncode != 0:
+        detail = (result.stderr or result.stdout).strip()
+        raise RuntimeError(detail or f"openclaw agent failed with exit code {result.returncode}")
+    return result.stdout.strip()
 
 
 def parse_args(argv):
     parser = argparse.ArgumentParser(description="Publish full daily brief package into Home Brief")
-    parser.add_argument("--entry-id", required=True, help="Home Brief config entry id to publish into")
+    parser.add_argument("--entry-id", help="Home Brief config entry id to publish into")
     parser.add_argument("--brief-file", help="Path to plain text daily brief source")
     parser.add_argument("--generate-from-prompt", action="store_true", help="Generate the full brief from the standard prompt before publishing")
     parser.add_argument("--prompt-path", default=f"{WORKSPACE}/prompts/openclaw_daily_brief.md", help="Prompt spec path used with --generate-from-prompt")
     parser.add_argument("--source", default="full_daily_brief", help="Source label recorded by Home Brief")
-    return parser.parse_args(argv)
+    parser.add_argument("--generate-only", action="store_true", help="Generate/build the brief and payload but do not publish to Home Brief")
+    args = parser.parse_args(argv)
+    if not args.generate_only and not args.entry_id:
+        parser.error("--entry-id is required unless --generate-only is used")
+    return args
 
 
 def main(argv=None):
@@ -304,6 +348,9 @@ def main(argv=None):
         raise SystemExit("Provide --brief-file or --generate-from-prompt")
     token = get_token()
     payload = build_payload(brief_text, token)
+    if args.generate_only:
+        print(json.dumps({"ok": True, "generated_only": True, "payload": payload, "brief_text": brief_text}, ensure_ascii=False))
+        return
     result = publish_payload(token, args.entry_id, payload, source=args.source)
     print(json.dumps({"ok": True, "published": result, "payload": payload, "brief_text": brief_text}, ensure_ascii=False))
 
