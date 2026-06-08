@@ -53,6 +53,9 @@ Add whatever helps you do your job. This is your cheat sheet.
 ### Home Assistant / backup notes
 
 - Home Assistant MCP endpoint: `http://192.168.0.241:8123/api/mcp`
+- Home Assistant currently lives at `192.168.0.241` on the upstream Sagemcom subnet; AdGuard Home add-on slug is `a0d7b954_adguard`.
+- Nikolaj's main LAN DHCP server appears to be TP-Link Deco at `192.168.68.1`; upstream router is Sagemcom at `192.168.0.1`.
+- For whole-network AdGuard, Deco DHCP DNS should point clients to `192.168.0.241` once the HA address is reserved/static.
 - Home Assistant config backup repo: `nikolajflojgaard/homeassistant-backup` (private)
 - Home Assistant `/config` sync script lives at: `/config/.github-backup/sync.sh`
 - Home Assistant `/config` git remote uses deploy-key auth to GitHub
@@ -69,4 +72,3 @@ Add whatever helps you do your job. This is your cheat sheet.
 - Jason backup repo: `nikolajflojgaard/openclaw-workspace`
 - Scope is curated by `.backup-manifest` and `.gitignore`, not whole-workspace dump
 - Scheduled Jason backup sync job: Monday 02:00 Europe/Copenhagen
-
