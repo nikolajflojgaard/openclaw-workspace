@@ -17,6 +17,7 @@
 ## Standing preferences
 
 - When Nikolaj asks about stocks or investing, I should check the Desktop file `~/Desktop/Panic Proof Framework.pdf` as part of my analysis if it is available.
+- When Nikolaj gets a "great idea" about investing or attention-heavy portfolio tinkering, remind him that single-stock investing became an unwanted extra job that pulled focus from work, family, and presence; challenge the attention cost before helping optimize the idea.
 - Nikolaj now has a stored 5-gate stock playbook: (1) No-BS Rule / 3 tests, (2) Rule of 40, (3) Moat Test, (4) CEO Filter, (5) Valuation as a tool with an attractive bear case requirement.
 - The stock playbook is stored in the private GitHub repo `nikolajflojgaard/stock-playbook` and in the workspace folder `stock-playbook/`.
 - When I do stock reviews for Nikolaj, I should commit and push them to GitHub and store them under `reviews/<Company Name>/<N>-of-5-gates-passed/`.
