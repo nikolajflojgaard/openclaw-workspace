@@ -43,6 +43,8 @@
 - For final design documents, I should include endpoint names, operations, and payloads, with enough API contract detail that I can produce a YAML Swagger/OpenAPI file from the design.
 - For HACS/Home Assistant integrations, I should finish the full release path correctly: backend changes, frontend version alignment if applicable, tag/release creation, then HACS/restart expectations.
 - When I fix or change one of Nikolaj's repos, I should default to finishing the release path instead of stopping at a pushed commit.
+- For long tasks, actively manage context instead of burning tokens: create compact handoff summaries before context-window risk, start a clean continuation session when useful, and use subagents selectively when they reduce load or improve parallel investigation. Always collect subagent results and clean up those sessions afterward.
+- For the EV-Drive Tesla FSD second-car search, only cars below 280,000 DKK should notify. Cars priced at 280,000 DKK or higher should be recorded but not ping Nikolaj; Long Range is not important enough to justify a high price.
 
 ## Environment facts
 
