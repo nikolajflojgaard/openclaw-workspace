@@ -51,7 +51,7 @@ Use the local token helper and Home Assistant API.
 Recommended pattern:
 
 ```bash
-TOKEN="$(security find-generic-password -a "$USER" -s "homeassistant-mcp-token" -w)"
+TOKEN="$(python3 scripts/ha_token.py)"
 
 # Read all current states when entity discovery is needed
 curl -s -H "Authorization: Bearer $TOKEN" \

@@ -8,17 +8,14 @@ import urllib.request
 from datetime import datetime, timedelta, date
 from urllib.parse import quote
 
+from ha_token import get_token
+
 HA_BASE = "http://192.168.0.241:8123"
 WORKSPACE = Path(__file__).resolve().parent.parent
 
 
 def sh(cmd):
     return subprocess.check_output(cmd, text=True).strip()
-
-
-def get_token():
-    user = sh(["whoami"])
-    return sh(["security", "find-generic-password", "-a", user, "-s", "homeassistant-mcp-token", "-w"])
 
 
 def ha_request(path, token, method="GET", body=None):
