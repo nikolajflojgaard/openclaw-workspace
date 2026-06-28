@@ -1,0 +1,18 @@
+{
+  "objective": "{{objective}}",
+  "status": "pending",
+  "created_at": "{{created_at}}",
+  "lanes": [],
+  "artifacts": [],
+  "gates": [
+    "request matched",
+    "scope explicit",
+    "user changes preserved",
+    "write ownership respected",
+    "validation complete or gap stated",
+    "privacy protected",
+    "external actions approved"
+  ],
+  "blocked": [],
+  "notes": []
+}

@@ -1,0 +1,27 @@
+{
+  "objective": "",
+  "started_at": "",
+  "constraints": [],
+  "lanes": [
+    {
+      "id": "",
+      "agent": "",
+      "role": "",
+      "scope": [],
+      "writes": [],
+      "status": "pending",
+      "gate": "",
+      "last_update": "",
+      "artifacts": []
+    }
+  ],
+  "merge_gates": {
+    "scope_checked": false,
+    "user_changes_preserved": false,
+    "validation_run": false,
+    "security_privacy_checked": false,
+    "external_actions_approved": false
+  },
+  "final_artifacts": [],
+  "residual_risks": []
+}

@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>ai.openclaw.node.headless</string>
+  <key>Comment</key>
+  <string>OpenClaw node host headless LaunchDaemon. Runs as Nikolaj after FileVault unlock, before desktop login.</string>
+  <key>UserName</key>
+  <string>nikolajflojgaard</string>
+  <key>GroupName</key>
+  <string>staff</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/opt/homebrew/opt/node@22/bin/node</string>
+    <string>/opt/homebrew/lib/node_modules/openclaw/dist/index.js</string>
+    <string>node</string>
+    <string>run</string>
+    <string>--host</string>
+    <string>127.0.0.1</string>
+    <string>--port</string>
+    <string>18789</string>
+  </array>
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>HOME</key>
+    <string>/Users/nikolajflojgaard</string>
+    <key>NODE_EXTRA_CA_CERTS</key>
+    <string>/etc/ssl/cert.pem</string>
+    <key>NODE_USE_SYSTEM_CA</key>
+    <string>1</string>
+    <key>OPENCLAW_LAUNCHD_LABEL</key>
+    <string>ai.openclaw.node.headless</string>
+    <key>OPENCLAW_LOG_PREFIX</key>
+    <string>node</string>
+    <key>OPENCLAW_SERVICE_KIND</key>
+    <string>node</string>
+    <key>OPENCLAW_SERVICE_MARKER</key>
+    <string>openclaw</string>
+    <key>OPENCLAW_SERVICE_VERSION</key>
+    <string>2026.6.6</string>
+    <key>OPENCLAW_SYSTEMD_UNIT</key>
+    <string>openclaw-node</string>
+    <key>PATH</key>
+    <string>/opt/homebrew/opt/node@22/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+    <key>TMPDIR</key>
+    <string>/Users/nikolajflojgaard/.openclaw/tmp</string>
+  </dict>
+  <key>RunAtLoad</key>
+  <true/>
+  <key>KeepAlive</key>
+  <true/>
+  <key>ThrottleInterval</key>
+  <integer>10</integer>
+  <key>ExitTimeOut</key>
+  <integer>20</integer>
+  <key>StandardInPath</key>
+  <string>/dev/null</string>
+  <key>StandardOutPath</key>
+  <string>/Users/nikolajflojgaard/Library/Logs/openclaw/node-headless.log</string>
+  <key>StandardErrorPath</key>
+  <string>/Users/nikolajflojgaard/Library/Logs/openclaw/node-headless.err.log</string>
+  <key>Umask</key>
+  <integer>63</integer>
+</dict>
+</plist>

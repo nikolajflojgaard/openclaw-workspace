@@ -1,0 +1,21 @@
+{
+  "status": "done",
+  "scope": "What was reviewed",
+  "findings": [
+    {
+      "severity": "high",
+      "title": "Short actionable title",
+      "evidence": "File/line, command output, log, or reproduction evidence",
+      "impact": "Why this matters",
+      "recommendation": "What the hub should do next",
+      "confidence": "high",
+      "file": "optional/path",
+      "line": 1
+    }
+  ],
+  "questions": [],
+  "validation_gaps": [],
+  "risks": [],
+  "summary": "Short synthesis after findings",
+  "handoff": "Exact next action"
+}
